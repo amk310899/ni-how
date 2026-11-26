@@ -68,6 +68,10 @@ applyUI();
 #hearts i{position:absolute;bottom:-30px;font-style:normal;color:#ff5c93;opacity:0;animation:hup var(--d,2.6s) ease-in var(--dl,0s) forwards;will-change:transform,opacity}
 @keyframes hup{0%{transform:translate(0,0) scale(.6);opacity:0}12%{opacity:.95}50%{transform:translate(var(--sx,10px),-50vh) scale(1)}100%{transform:translate(calc(var(--sx,10px)*-1),-108vh) scale(.85);opacity:0}}
 .pickline{font-style:italic;margin:2px 0 6px}
+.pickcard{display:none;grid-column:1/-1;padding:16px 18px;gap:12px;align-items:center;font-weight:600;font-size:16px;line-height:1.4;border-color:var(--accent);background:var(--soft)}
+.pickcard .ht{color:var(--accent);font-size:26px;flex:none}
+:root[data-pick] .tile3{display:none}
+:root[data-pick] .pickcard{display:flex}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:17px;line-height:1.45;display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent}
@@ -776,12 +780,13 @@ function progHTML(){
   const d=state.days[today()]||[0,0],T=Math.min(target(),MAXL);let n=0;
   const ths=[...new Set(ALL.filter(w=>w.lv===T).map(w=>w.th))];
   const tm=ths.map(c=>{const ws=ALL.filter(w=>w.lv===T&&w.th===c),dn=ws.filter(isKnown).length,full=dn===ws.length;
-    return `<button class="tm ${full?'done':''}" data-act="theme" data-th="${c}"><div class="row"><span>${esc(TH[c])}</span><span class="muted small">${dn}/${ws.length}</span></div><div class="meter"><i class="${full?'m':'k'}" style="width:${100*dn/ws.length}%"></i></div><span class="muted small">№ ${++n} по частоте · ${full?'повторить карточками':'начать урок'}</span></button>`}).join('');
+    return `<button class="tm ${full?'done':''}" data-act="theme" data-th="${c}"><div class="row"><span>${esc(TH[c])}</span><span class="muted small">${dn}/${ws.length}</span></div><div class="meter"><i class="${full?'m':'k'}" style="width:${100*dn/ws.length}%"></i></div><span class="muted small">${full?'повторить карточками':'начать урок'}</span></button>`}).join('');
   return `<div class="tiles3">
     <div class="card tile3"><span class="muted small">Серия</span><b>${streak()} дн.</b><span class="muted small">подряд с занятиями</span></div>
     <div class="card tile3"><span class="muted small">Сегодня новых слов</span><b>${d[0]}</b><span class="muted small">цель: ${LESSON} в день</span></div>
-    <div class="card tile3"><span class="muted small">Сегодня повторено</span><b>${d[1]}</b><span class="muted small">слов на повторении и экзамене</span></div></div>
-  <div><h3>Темы ${LVNAME[T]}</h3><p class="muted small" style="margin:4px 0 0">Темы идут от самых частых в речи к более редким. Нажми на тему, чтобы начать урок именно по ней.</p></div><div class="tmap">${tm}</div>`;
+    <div class="card tile3"><span class="muted small">Сегодня повторено</span><b>${d[1]}</b><span class="muted small">слов на повторении и экзамене</span></div>
+    <div class="card pickcard"><span class="ht">&#9829;</span><span>Ты в любом случае 100 из 100, а китайский - это всего лишь способ передачи мыслей между людьми из другой страны</span></div></div>
+  <div><h3>Темы ${LVNAME[T]}</h3><p class="muted small" style="margin:4px 0 0">Темы идут от бытовых ситуаций к более сложным. Нажми на тему, чтобы начать урок именно по ней.</p></div><div class="tmap">${tm}</div>`;
 }
 
 /* ---------- проверка свайпами ---------- */
