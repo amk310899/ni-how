@@ -6,6 +6,12 @@
 <title>Тренажёр HSK</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Noto+Sans:wght@400;500&display=swap" rel="stylesheet">
+<script>
+/* оформление хранится на устройстве отдельно от прогресса; по умолчанию ночной режим */
+var UI={theme:'dark',pick:false};try{UI=Object.assign(UI,JSON.parse(localStorage.getItem('hsk-ui')||'{}'))}catch(e){}
+function applyUI(){var r=document.documentElement;r.setAttribute('data-theme',UI.theme==='light'?'light':'dark');if(UI.pick)r.setAttribute('data-pick','1');else r.removeAttribute('data-pick')}
+applyUI();
+</script>
 <style>
 :root{
   /* Раскладка: одна колонка-«парта» по центру, крупные цели для пальца, иероглиф всегда главный объект экрана */
@@ -31,6 +37,37 @@
   --accent:#7fb0ff; --accent-ink:#071a36; --soft:#1c2942;
   --good:#5cc18d; --good-soft:#18301f; --bad:#ef7d72; --bad-soft:#3a1d1b; --warn:#e0a84a; --warn-soft:#33290f;
 }
+/* пикми режим: розовая палитра для дня и ночи */
+:root[data-pick]{
+  --bg:#fdeaf2; --surface:#fffafc; --ink:#3b1529; --muted:#8a566d; --line:#f2c3d6;
+  --accent:#d22d6a; --accent-ink:#ffffff; --soft:#ffdce9;
+}
+:root[data-pick][data-theme="dark"]{
+  --bg:#1c1017; --surface:#2a1721; --ink:#fce8f0; --muted:#c998ae; --line:#4d2a3b;
+  --accent:#ff8ab5; --accent-ink:#3d0a22; --soft:#47202f;
+}
+/* плавная смена оформления */
+:root.theming,:root.theming *{transition:background-color .55s ease,color .55s ease,border-color .55s ease,fill .55s ease,stroke .55s ease !important}
+.tools{display:flex;align-items:center;gap:8px;margin-left:auto}
+.thm{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--accent);display:grid;place-items:center;cursor:pointer;padding:0}
+.thm svg{width:22px;height:22px;overflow:visible;transition:transform .7s cubic-bezier(.5,1.6,.4,1)}
+.thm .core,.thm .cut,.thm .rays{transform-box:fill-box;transform-origin:center;transition:transform .6s cubic-bezier(.4,0,.2,1),opacity .45s ease}
+.thm .rays{transform-box:view-box;transform-origin:12px 12px}
+:root[data-theme="dark"] .thm svg{transform:rotate(-30deg)}
+:root[data-theme="dark"] .thm .core{transform:scale(1.75)}
+:root[data-theme="dark"] .thm .cut{transform:translate(0,0)}
+:root[data-theme="dark"] .thm .rays{transform:rotate(-90deg) scale(.2);opacity:0}
+:root[data-theme="light"] .thm .cut{transform:translate(14px,-14px)}
+.pkm{height:38px;padding:0 12px;border-radius:19px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font:600 13px var(--font-ui);cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:background-color .4s,color .4s,border-color .4s,transform .2s}
+.pkm:active{transform:scale(.95)}
+.pkm .ht{color:#e0407c;display:inline-block;transition:transform .4s cubic-bezier(.5,1.8,.4,1)}
+.pkm[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.pkm[aria-pressed="true"] .ht{color:var(--accent-ink);transform:scale(1.3)}
+.thm:focus-visible,.pkm:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#hearts{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:60}
+#hearts i{position:absolute;bottom:-30px;font-style:normal;color:#ff5c93;opacity:0;animation:hup var(--d,2.6s) ease-in var(--dl,0s) forwards;will-change:transform,opacity}
+@keyframes hup{0%{transform:translate(0,0) scale(.6);opacity:0}12%{opacity:.95}50%{transform:translate(var(--sx,10px),-50vh) scale(1)}100%{transform:translate(calc(var(--sx,10px)*-1),-108vh) scale(.85);opacity:0}}
+.pickline{font-style:italic;margin:2px 0 6px}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:17px;line-height:1.45;display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent}
@@ -322,6 +359,10 @@ button.tm:hover{border-color:var(--accent)}
 <body>
 <header class="bar">
   <div class="brand"><span class="zh">汉语</span><span>Тренажёр HSK</span></div>
+  <span class="tools">
+    <button class="thm" id="thm" type="button" aria-label="Светлый или ночной режим" title="Светлый / ночной режим"><svg viewBox="0 0 24 24" aria-hidden="true"><mask id="thmm"><rect x="-6" y="-6" width="36" height="36" fill="#fff"/><circle class="cut" cx="17" cy="7" r="7.5" fill="#000"/></mask><g mask="url(#thmm)"><circle class="core" cx="12" cy="12" r="5" fill="currentColor"/></g><g class="rays" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1.5v2.5M12 20v2.5M1.5 12H4M20 12h2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></g></svg></button>
+    <button class="pkm" id="pkm" type="button" aria-pressed="false"><span class="ht">&#9829;</span>Пикми режим</button>
+  </span>
   <span class="sync" id="sync"></span>
   <nav class="nav" id="nav">
     <button data-nav="home">Главная</button>
@@ -372,6 +413,22 @@ const core=w=>w.ru.split(/[,;(]/)[0].trim().toLowerCase();
 const long=hz=>hz.length>3?' long':'';
 
 /* ---------- состояние ---------- */
+function saveUI(){try{localStorage.setItem('hsk-ui',JSON.stringify(UI))}catch(e){}}
+function smoothUI(){const r=document.documentElement;r.classList.add('theming');applyUI();saveUI();syncUI();clearTimeout(smoothUI.t);smoothUI.t=setTimeout(()=>r.classList.remove('theming'),650)}
+function syncUI(){const b=document.getElementById('pkm');if(b)b.setAttribute('aria-pressed',UI.pick?'true':'false')}
+// сердечки плывут вверх вдоль краёв экрана
+function hearts(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  let box=document.getElementById('hearts');if(!box){box=document.createElement('div');box.id='hearts';document.body.appendChild(box)}
+  const W=innerWidth,edge=Math.min(46,W*.11);
+  for(let k=0;k<18;k++){const h=document.createElement('i'),left=k%2===0;h.textContent='\u2665';
+    const x=left?Math.random()*edge:W-edge+Math.random()*edge-14;
+    h.style.cssText=`left:${x}px;font-size:${11+Math.random()*9}px;--d:${2.2+Math.random()*1.6}s;--dl:${Math.random()*.9}s;--sx:${(left?1:-1)*(4+Math.random()*10)}px;bottom:${-30+Math.random()*innerHeight*.45}px`;
+    box.appendChild(h);setTimeout(()=>h.remove(),4800)}
+}
+document.addEventListener('DOMContentLoaded',()=>{syncUI();
+  document.getElementById('thm').onclick=()=>{UI.theme=UI.theme==='light'?'dark':'light';smoothUI()};
+  document.getElementById('pkm').onclick=()=>{UI.pick=!UI.pick;smoothUI();if(UI.pick)hearts()}});
 const fresh=()=>({v:1,level:null,st:{},scr:{},batch:[],relearn:[],srs:{},err:{},typed:true,custom:[],flags:[],days:{},dlg:{},gr:{},examLater:0,lastBackup:0,bkNag:0,bkAsked:false,autoBackup:false,noAudio:false,ts:0});
 let sessNoAudio=false;
 const canListen=()=>!state.noAudio&&!sessNoAudio&&('speechSynthesis' in window);
@@ -853,6 +910,7 @@ function runTasks(o){
     ({mc,build,typed,stype,listen,pairs,gap})[it.type](it,head);
   }
   function settle(it,ok,html,canMine){
+    if(UI.pick){if(ok)hearts();else html='<div class="pickline">Это просто палец промахнулся или программа заглючила, продолжай - ты справишься.</div>'+(html||'')}
     if(it.w){if(!res.has(it.w.hz))res.set(it.w.hz,true);if(!ok)res.set(it.w.hz,false);if(o.onAnswer)o.onAnswer(it.w,ok)}
     const rec={ok};log.push(rec);if(it.type==='build')sres.push(rec);
     let requeued=false;
