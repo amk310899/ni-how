@@ -72,6 +72,23 @@ applyUI();
 .pickcard .ht{color:var(--accent);font-size:26px;flex:none}
 :root[data-pick] .tile3{display:none}
 :root[data-pick] .pickcard{display:flex}
+.pkonly{display:none}
+:root[data-pick] .pkonly{display:revert}
+.pickhi{display:none;border-color:var(--accent)}
+:root[data-pick] .pickhi{display:block}
+.pickhi h2{margin:4px 0 6px}.pickhi p{margin:4px 0}.pickhi .row{margin-top:10px}
+.pkzh{display:flex;flex-direction:column;gap:2px;margin:6px 0}
+.pkzh .zh{font-family:var(--font-zh);font-size:28px;color:var(--accent)}
+.pkzh .py{font-family:var(--font-py);color:var(--muted)}
+.pkline2{font-weight:600;color:var(--accent)}
+#pktoast{position:fixed;left:50%;top:76px;transform:translate(-50%,-12px);background:var(--accent);color:var(--accent-ink);padding:10px 18px;border-radius:22px;font:600 15px var(--font-ui);opacity:0;pointer-events:none;z-index:70;transition:opacity .35s ease,transform .35s ease;max-width:86vw;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+#pktoast.on{opacity:1;transform:translate(-50%,0)}
+#hearts i{pointer-events:auto;padding:8px;margin:-8px;cursor:pointer}
+#hearts i.pop{animation:hpop .35s ease-out forwards}
+@keyframes hpop{to{transform:scale(2.6);opacity:0}}
+.pkans{min-height:54px;font-family:var(--font-zh);font-size:34px;letter-spacing:6px;margin:6px 0}
+.pkset{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.pkset input{flex:1;min-width:130px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:17px;line-height:1.45;display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent}
@@ -375,7 +392,7 @@ button.tm:hover{border-color:var(--accent)}
     <button data-nav="settings">Настройки</button>
   </nav>
 </header>
-<main id="main"><div class="wrap" id="view"></div><footer class="ver">Тренажёр HSK · версия 1.24 · 26.11.2026</footer></main>
+<main id="main"><div class="wrap" id="view"></div><footer class="ver">Тренажёр HSK · версия 1.25 · 26.11.2026<div class="pkonly" id="pkfoot"></div></footer></main>
 
 <div class="modal" id="modal" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Иероглиф"></div></div>
 <script>/**
@@ -425,14 +442,70 @@ const long=hz=>hz.length>3?' long':'';
 /* ---------- состояние ---------- */
 function saveUI(){try{localStorage.setItem('hsk-ui',JSON.stringify(UI))}catch(e){}}
 function smoothUI(){const r=document.documentElement;r.classList.add('theming');applyUI();saveUI();syncUI();clearTimeout(smoothUI.t);smoothUI.t=setTimeout(()=>r.classList.remove('theming'),650)}
-function syncUI(){const b=document.getElementById('pkm');if(b)b.setAttribute('aria-pressed',UI.pick?'true':'false')}
+function syncUI(){const b=document.getElementById('pkm');if(b)b.setAttribute('aria-pressed',UI.pick?'true':'false');
+  const f=document.getElementById('pkfoot');if(f)f.textContent=UI.name?UI.name+', ошибок в тебе не найдено':'Сделано с любовью. Ошибок в тебе не найдено'}
+// ---------- пасхалки пикми режима ----------
+if(UI.bday===undefined)UI.bday='09.05';
+let pkRun=0;
+const PK={
+  day:['Сегодня ты учишь китайский, а китайский учится тебе нравиться.','Пять слов в день, и через год ты споришь с таксистом в Ханчжоу.','Тоны путают все. Даже китайцы в караоке.','Ошибка в иероглифе не ошибка, а авторский стиль.','Ты уже знаешь больше слов, чем вчера. Математика на твоей стороне.','Китайский сложный, а ты упрямее.','Если устала, одно слово тоже считается.','Иероглифы тебя боятся. И правильно делают.','Сегодня хороший день, чтобы запомнить что-нибудь красивое.','Никто не родился со знанием 把. Все через это прошли.','Память любит повторение, а я люблю, когда ты заходишь.','Маленький урок лучше большого плана.','Ты красиво ошибаешься и ещё красивее исправляешься.','Чай, пять слов и ты молодец.','Пиньинь без тонов тоже пиньинь. Но с тонами ты звучишь как дома.','Сегодняшние слова завтра станут твоими.','Не сравнивай себя с носителями. Они не учили русские падежи.','Экзамен боится тебя сильнее, чем ты его.','Каждое слово это маленькая дверь. Сегодня откроем ещё пять.','Ты справишься. Проверено на предыдущих уроках.','Сначала непонятно, потом привычно, потом родное.','Можно медленно. Нельзя только бросить.','Хорошие новости: слово «люблю» в китайском короткое.','Сегодня без спешки. Иероглифы подождут, они ждали три тысячи лет.'],
+  pop:['Поймала!','Ещё одно твоё','加油!','Меткая','Это сердечко было для тебя','爱','Лопнуло от чувств','520','Ловкие пальцы','Продолжай, красиво получается'],
+  zh:[['你真棒','nǐ zhēn bàng','ты молодец'],['你很聪明','nǐ hěn cōngming','ты умница'],['太好了','tài hǎo le','отлично'],['你最好','nǐ zuì hǎo','ты лучше всех'],['我喜欢你','wǒ xǐhuan nǐ','ты мне нравишься']],
+  hol:{'14.02':['情人节快乐','Qíngrén Jié kuàilè','С Днём влюблённых'],'08.03':['妇女节快乐','Fùnǚ Jié kuàilè','С 8 Марта'],'31.12':['新年快乐','Xīnnián kuàilè','С Новым годом']}
+};
+const pkHash=s=>{let h=5381;for(const c of s)h=((h*33)^c.codePointAt(0))>>>0;return h};
+function pkToast(t){let e=document.getElementById('pktoast');if(!e){e=document.createElement('div');e.id='pktoast';e.setAttribute('role','status');document.body.appendChild(e)}
+  e.textContent=t;e.classList.remove('on');void e.offsetWidth;e.classList.add('on');clearTimeout(pkToast.t);pkToast.t=setTimeout(()=>e.classList.remove('on'),2600)}
+const pkZh=()=>{const z=PK.zh[Math.floor(Math.random()*PK.zh.length)];return `<div class="pkzh pkonly"><span class="zh">${z[0]}</span><span class="py">${z[1]} · ${z[2]}</span></div>`};
+// карточка-приветствие на главной: праздник, возвращение после перерыва или фраза дня
+function pickGreet(){
+  const now=new Date(),dm=String(now.getDate()).padStart(2,'0')+'.'+String(now.getMonth()+1).padStart(2,'0'),d=today(),nm=UI.name?', '+esc(UI.name):'';
+  let h=PK.hol[dm];if(UI.bday&&UI.bday===dm)h=['生日快乐','shēngrì kuàilè','С днём рождения'];
+  const days=Object.keys(state.days).map(Number).filter(k=>k<d),gap=days.length&&!state.days[d]?d-Math.max(...days):0;
+  let title,body,btn='';
+  if(h){title=h[2]+nm;body=`<div class="pkzh"><span class="zh">${h[0]}</span><span class="py">${h[1]}</span></div>`;
+    if(UI.pick&&UI.hol!==d){UI.hol=d;saveUI();setTimeout(()=>hearts(1),500)}}
+  else if(gap>=3){title='Скучал'+nm;body='<p>Начнём с лёгкого?</p>';btn='<button class="btn primary" data-pk="easy">Лёгкий повтор</button>'}
+  else{title='Привет'+nm;body=`<p>${PK.day[d%PK.day.length]}</p>`}
+  let late='';if(now.getHours()<5&&(UI.late===undefined||UI.late!==d)){late='<p class="muted small">Слова никуда не убегут, а вот выспаться надо.</p>';if(UI.pick){setTimeout(()=>{UI.late=d;saveUI()},0)}}
+  return `<div class="card pickhi"><div class="eyebrow">Пикми режим</div><h2>${title}</h2>${body}${late}${btn?'<div class="row">'+btn+'</div>':''}</div>`}
+// тайное слово в поиске словаря
+function pkSecret(q){
+  if(!UI.pick)return '';const s=q.toLowerCase().trim();if(s.length<3)return '';
+  const hs=pkHash(s),byName=UI.name&&s===UI.name.toLowerCase();
+  if(hs===3593007894&&!UI.name){UI.name=s[0].toUpperCase()+s.slice(1);saveUI();syncUI()}
+  if(!(byName||hs===3593007894||hs===2048139632||s==='любимая'||s==='самая красивая'||s==='520'))return '';
+  return `<div class="pkzh"><span class="py">zuì piàoliang de nǚhái</span><span class="zh">最漂亮的女孩</span><b>самая красивая девушка</b></div>
+    <div><div class="muted small">Пример</div><div class="pkzh"><span class="zh" style="font-size:22px">${UI.name?esc(UI.name)+'是最漂亮的女孩':'你是最漂亮的女孩'}</span><span class="py">${UI.name?'':'Nǐ '}shì zuì piàoliang de nǚhái</span></div><div class="muted">${UI.name?esc(UI.name)+' самая красивая девушка':'Ты самая красивая девушка'}</div></div>`}
+// секретный уровень HSK 520
+function pk520(){
+  const rows=[['爱','ài','любить'],['喜欢','xǐhuan','нравиться'],['想你','xiǎng nǐ','скучаю по тебе'],['亲爱的','qīn\'ài de','дорогая, дорогой'],['我爱你','wǒ ài nǐ','я тебя люблю']];
+  sheet.innerHTML=`<div class="shead"><div class="eyebrow">Секретный уровень</div><button class="btn ghost sm" data-m="close">Закрыть</button></div>
+  <div><h2 style="margin:0 0 6px">HSK 520</h2><p class="muted" style="margin:0">五二零 (wǔ èr líng) звучит похоже на 我爱你, поэтому в Китае 520 пишут вместо «я тебя люблю».</p></div>
+  <div class="dict">${rows.map(r=>`<div class="drow"><span class="hz">${r[0]}</span><span class="py">${r[1]}</span><span class="ru">${r[2]}</span></div>`).join('')}</div>
+  <div><div class="muted small">Собери фразу «Я тебя люблю»</div><div class="pkans" id="pkans"></div><div class="row" id="pktiles">${['你','爱','我'].map(c=>`<button class="btn" data-pk="t" style="font-family:var(--font-zh);font-size:22px">${c}</button>`).join('')}</div></div>`;
+  modal.hidden=false;sheet.scrollTop=0}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-pk]');if(!b)return;const k=b.dataset.pk;
+  if(k==='easy'){const ws=shuffle(ALL.filter(w=>'mlr'.includes(st(w)))).concat(shuffle(ALL.filter(w=>st(w)==='k'))).slice(0,10);if(ws.length)go('cards',ws)}
+  if(k==='t'){const a=document.getElementById('pkans');a.textContent+=b.textContent;b.disabled=true;
+    if(a.textContent.length===3){if(a.textContent==='我爱你'){a.innerHTML='我爱你 <span class="muted" style="font-size:16px;letter-spacing:0">wǒ ài nǐ · 520</span>';hearts(1);pkToast('我也爱你')}
+      else setTimeout(()=>{a.textContent='';document.querySelectorAll('#pktiles button').forEach(x=>x.disabled=false)},600)}}
+  if(k==='save'){const n=document.getElementById('pkname').value.trim().slice(0,30),bd=document.getElementById('pkbd').value.trim(),m=document.getElementById('pkmsg');
+    if(bd&&!/^(0[1-9]|[12]\d|3[01])\.(0[1-9]|1[0-2])$/.test(bd)){m.textContent='Дата в формате ДД.ММ, например 09.05';m.className='msg-bad';return}
+    UI.name=n;UI.bday=bd;saveUI();syncUI();m.textContent='Сохранено';m.className='msg-ok'}
+});
+document.addEventListener('DOMContentLoaded',()=>{let n=0,tm;const z=document.querySelector('.brand .zh');
+  z.addEventListener('click',()=>{if(!UI.pick)return;n++;clearTimeout(tm);tm=setTimeout(()=>n=0,2500);if(n>=5){n=0;pk520()}})});
 // сердечки плывут вверх вдоль краёв экрана
-function hearts(){
+function hearts(full){
   if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   let box=document.getElementById('hearts');if(!box){box=document.createElement('div');box.id='hearts';document.body.appendChild(box)}
   const W=innerWidth,edge=Math.min(46,W*.11);
-  for(let k=0;k<18;k++){const h=document.createElement('i'),left=k%2===0;h.textContent='\u2665';
-    const x=left?Math.random()*edge:W-edge+Math.random()*edge-14;
+  for(let k=0;k<(full?70:18);k++){const h=document.createElement('i'),left=k%2===0;h.textContent='\u2665';
+    if(full)h.style.pointerEvents='none'; // дождь не должен перехватывать нажатия на кнопки
+    h.onpointerdown=()=>{if(h.classList.contains('pop'))return;h.style.transform=getComputedStyle(h).transform;h.classList.add('pop');pkToast(PK.pop[Math.floor(Math.random()*PK.pop.length)])};
+    const x=full?Math.random()*(W-20):(left?Math.random()*edge:W-edge+Math.random()*edge-14);
     h.style.cssText=`left:${x}px;font-size:${11+Math.random()*9}px;--d:${2.2+Math.random()*1.6}s;--dl:${Math.random()*.9}s;--sx:${(left?1:-1)*(4+Math.random()*10)}px;bottom:${-30+Math.random()*innerHeight*.45}px`;
     box.appendChild(h);setTimeout(()=>h.remove(),4800)}
 }
@@ -766,7 +839,7 @@ function vHome(){
   H.bksave=async()=>{const n=await backupFile();if(n)go('home');else document.getElementById('bkmsg').textContent='Не удалось сохранить файл. Воспользуйся кодом в настройках.'};
   H.bklater=()=>{state.bkNag=today();save();go('home')};
   view.innerHTML=`
-  ${bkInfo}${bkAsk}${bkNew}${rev}<div class="card next">${next}</div>${bk}${post}${gcard}${hrd}
+  ${pickGreet()}${bkInfo}${bkAsk}${bkNew}${rev}<div class="card next">${next}</div>${bk}${post}${gcard}${hrd}
   <div><div class="row" style="justify-content:space-between"><h3>Прогресс по уровням</h3><span class="muted small">Мой уровень: ${LVNAME[state.level]}</span></div></div>
   <div class="levels">${[1,2,3,4,5].map(lv).join('')}</div>
   ${progHTML()}
@@ -921,7 +994,8 @@ function runTasks(o){
     ({mc,build,typed,stype,listen,pairs,gap})[it.type](it,head);
   }
   function settle(it,ok,html,canMine){
-    if(UI.pick){if(ok)hearts();else html='<div class="pickline">Это просто палец промахнулся или программа заглючила, продолжай - ты справишься.</div>'+(html||'')}
+    if(!ok)pkRun=0;
+    if(UI.pick){if(ok){pkRun++;hearts(pkRun%10===0);if(pkRun===5)pkToast('Ну я же говорил');if(pkRun%10===0)pkToast('Ты опасно умная')}else html='<div class="pickline">Это просто палец промахнулся или программа заглючила, продолжай - ты справишься.</div>'+(html||'')}
     if(it.w){if(!res.has(it.w.hz))res.set(it.w.hz,true);if(!ok)res.set(it.w.hz,false);if(o.onAnswer)o.onAnswer(it.w,ok)}
     const rec={ok};log.push(rec);if(it.type==='build')sres.push(rec);
     let requeued=false;
@@ -1115,7 +1189,7 @@ function vLesson(arg){
       const dlg=pickDialog(ws);const fin=()=>{
       const miss=ws.filter(w=>res.get(w.hz)===false);
       const pool=examPool().length,more=queue().length>0,due=examDueNow(more);
-      view.innerHTML=`<div class="card next">${DONE}<div class="eyebrow">Урок пройден</div><h2>${ws.length} слов изучено</h2>
+      view.innerHTML=`<div class="card next">${DONE}<div class="eyebrow">Урок пройден</div><h2>${ws.length} слов изучено</h2>${pkZh()}
         <p class="muted">${miss.length?'С первого раза не получились: '+miss.map(w=>esc(w.hz)).join('、')+'. ':''}${due?'Набралось '+pool+' слов: пора на мини-экзамен.':(pool>=EXAM?'Экзамен отложен, ждут экзамена: '+pool+' слов.':'До мини-экзамена осталось '+(EXAM-pool)+' слов.')}</p>
         <div class="row"><button class="btn primary big" data-act="cont">${due?'К экзамену':'Следующий урок'}</button>${due&&more?'<button class="btn" data-act="later">Потом, следующий урок</button>':''}<button class="btn ghost" data-act="home2">На главную</button></div></div>`;
       const nextL=()=>go('lesson',arg&&arg.th&&themeQueue(arg.th).length?arg:undefined);
@@ -1143,10 +1217,11 @@ function vExam(){
     for(const w of ws){const ok=res.get(w.hz)!==false;setSt(w,ok?'m':'r');if(ok)state.srs[w.hz]=[0,today()+1];else{delete state.srs[w.hz];if(!state.relearn.includes(w.hz))state.relearn.push(w.hz)}}
     state.batch=state.batch.filter(h=>!set.has(h));state.examLater=0;tick(1,ws.length);save();
     view.innerHTML=`<div class="card next"><div class="eyebrow">Результат экзамена</div><div class="score"><span id="cnt">0</span> / ${ws.length}</div>
+      <p class="pkonly pkline2">${fail.length<=ws.length*.2?'Кто бы сомневался':'Экзамен был составлен неправильно, я уже разбираюсь'}</p>
       <p class="muted">${sres.length?`Предложения: ${sok} из ${sres.length}. `:''}${fail.length?'Несданные слова вернулись в очередь: они придут первыми в следующих уроках и попадут в следующий экзамен.':'Все слова сданы.'} Сданные слова придут на повторение завтра.</p>
       ${failHTML(fail)}
       <div class="row"><button class="btn primary big" data-act="home2">Продолжить</button></div></div>`;
-    H={home2:()=>go('home')};countUp(document.getElementById('cnt'),pass);
+    H={home2:()=>go('home')};countUp(document.getElementById('cnt'),pass);if(UI.pick&&fail.length<=ws.length*.2)hearts(1);
   }});
 }
 
@@ -1407,7 +1482,7 @@ function vDict(){
     const sc=w=>(w.hz===ql||plain(w.py)===qp||w.ru.toLowerCase()===ql?0:(w.hz.startsWith(ql)||(lat&&plain(w.py).startsWith(qp))||w.ru.toLowerCase().startsWith(ql)?1:2));
     return r.sort((a,b)=>sc(a)-sc(b)||a.f-b.f).slice(0,80)};
   const base=html;
-  const show=()=>{const r=find(dictQ),el=document.getElementById('dres');
+  const show=()=>{const r=find(dictQ),el=document.getElementById('dres'),sec=pkSecret(dictQ);if(sec){el.innerHTML=sec;return}
     el.innerHTML=r===null?base:(r.length?`<h3>Найдено: ${r.length}${r.length===80?' (показаны первые 80)':''}</h3>`+r.map(row).join(''):'<p class="muted">Ничего не найдено. Попробуй другое слово или пиньинь без тонов.</p>')};
   view.innerHTML=`<div><h1>Словарь</h1><p class="muted">Нажми на статус, чтобы вручную отметить слово как известное или вернуть его в изучение.</p></div>
   <input class="search" id="dq" type="search" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Поиск по словарю" placeholder="Поиск: 汉字, pinyin, русский" value="${esc(dictQ)}">
@@ -1442,6 +1517,8 @@ function vMy(){
 /* ---------- настройки ---------- */
 function vSettings(){
   view.innerHTML=`<div><h1>Настройки</h1></div>
+  <div class="card pkonly"><h3>Пикми режим</h3><p class="muted">Имя для приветствий и день рождения. Хранятся только на этом устройстве.</p>
+    <div class="pkset"><input id="pkname" placeholder="Имя" aria-label="Имя" maxlength="30" value="${esc(UI.name||'')}"><input id="pkbd" placeholder="День рождения, ДД.ММ" aria-label="День рождения, ДД.ММ" inputmode="decimal" maxlength="5" value="${esc(UI.bday||'')}"><button class="btn primary" data-pk="save">Сохранить</button></div><div id="pkmsg" style="margin-top:8px"></div></div>
   <div class="card"><h3>Уровень</h3><p class="muted">Сейчас: ${state.level===null?'не выбран':LVNAME[state.level]}. Смена уровня не стирает отметки, сделанные вручную и на экзаменах.</p>
     <div class="row"><button class="btn" data-act="pick">Выбрать уровень заново</button>
     ${[1,2,3,4].map(l=>`<button class="btn ghost" data-act="scr" data-lv="${l}">Проверить карточками ${LVNAME[l]}</button>`).join('')}</div></div>
@@ -1465,7 +1542,7 @@ function vSettings(){
   <div class="card"><h3>Перенос прогресса кодом</h3><p class="muted">Запасной способ без файла: скопируй код и вставь его на другом устройстве.</p>
     <textarea id="code" aria-label="Код прогресса"></textarea>
     <div class="row"><button class="btn" data-act="exp">Показать и скопировать мой код</button><button class="btn" data-act="imp">Загрузить прогресс из кода</button><span class="muted small" id="msg"></span></div></div>
-  <div class="card"><h3>О данных</h3><p class="muted">Версия приложения: 1.24 от 26.11.2026. Списки слов: HSK 3.0, редакция 2025 года. Порядок черт: библиотека Hanzi Writer и данные Make Me a Hanzi (открытые лицензии).</p></div>
+  <div class="card"><h3>О данных</h3><p class="muted">Версия приложения: 1.25 от 26.11.2026. Списки слов: HSK 3.0, редакция 2025 года. Порядок черт: библиотека Hanzi Writer и данные Make Me a Hanzi (открытые лицензии).</p></div>
   <div class="card"><h3>Сброс</h3><p class="muted">Удаляет весь прогресс без возможности восстановления.</p>
     <div class="row" id="rst"><button class="btn bad" data-act="rst1">Сбросить прогресс</button></div></div>`;
   const msg=t=>document.getElementById('msg').textContent=t;
